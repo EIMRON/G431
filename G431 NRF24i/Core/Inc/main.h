@@ -57,10 +57,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define CE_Pin GPIO_PIN_1
-#define CE_GPIO_Port GPIOA
 #define CSN_Pin GPIO_PIN_4
 #define CSN_GPIO_Port GPIOA
+#define CE_Pin GPIO_PIN_0
+#define CE_GPIO_Port GPIOB
 #define T_SWDIO_Pin GPIO_PIN_13
 #define T_SWDIO_GPIO_Port GPIOA
 #define T_SWCLK_Pin GPIO_PIN_14

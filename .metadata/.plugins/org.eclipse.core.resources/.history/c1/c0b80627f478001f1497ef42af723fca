@@ -58,13 +58,31 @@ static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
 void UpdateJoystickValues(void) {
+    // Start ADC Conversion (in scan mode, it will automatically handle both channels)
     HAL_ADC_Start(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1, 5);
-    myStruct.Joy1X = HAL_ADC_GetValue(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1, 5);
-    myStruct.Joy1Y = HAL_ADC_GetValue(&hadc1);
+
+    // Poll for first conversion (Joy1X - Channel 3)
+        HAL_StatusTypeDef ret = HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+        if (ret != HAL_OK) {
+          myStruct.Joy1X = ret;
+        } else {
+          myStruct.Joy1X =
+              HAL_ADC_GetValue(&hadc1); // Store X-axis value (Channel 3)
+        }
+
+        // Poll for second conversion (Joy1Y - Channel 4)
+        ret = HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY );
+        if (ret != HAL_OK) {
+          myStruct.Joy1Y = ret;
+        } else {
+          myStruct.Joy1Y =
+              HAL_ADC_GetValue(&hadc1); // Store X-axis value (Channel 3)
+        }
+
+    // Stop ADC Conversion
     HAL_ADC_Stop(&hadc1);
 }
+
 
 /*
 void UpdateJoystickValues(void) {
@@ -300,9 +318,9 @@ static void MX_ADC1_Init(void)
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.GainCompensation = 0;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.NbrOfConversion = 2;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
@@ -325,7 +343,7 @@ static void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Channel = ADC_CHANNEL_3;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -338,7 +356,7 @@ static void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -406,24 +424,20 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(CE_GPIO_Port, CE_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(CSN_GPIO_Port, CSN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, CE_Pin|LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : CSN_Pin */
-  GPIO_InitStruct.Pin = CSN_Pin;
+  /*Configure GPIO pins : CE_Pin CSN_Pin */
+  GPIO_InitStruct.Pin = CE_Pin|CSN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(CSN_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : CE_Pin */
-  GPIO_InitStruct.Pin = CE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(CE_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;
